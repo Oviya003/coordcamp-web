@@ -45,19 +45,43 @@ export default function Login() {
         setTimeout(() => reject(new Error("Network timeout: Supabase is taking too long to respond. Please refresh the page or restart your dev server.")), 10000)
       );
 
-      const { data, error: signInError } = await Promise.race([
-        supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
+      // Bypass Supabase SDK bug on mobile by using native fetch
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zmchgoheciwkitiamihv.supabase.co';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const authResponse = await Promise.race([
+        fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+          method: 'POST',
+          headers: {
+            'apikey': anonKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          })
         }),
         timeoutPromise
       ]);
 
-      if (signInError) throw signInError;
-      
-      if (!data?.user) {
-        throw new Error("Login succeeded but no user session was returned. If you just created this account, please check your email to verify your address before logging in.");
+      if (!authResponse.ok) {
+        const errorData = await authResponse.json();
+        throw new Error(errorData.error_description || errorData.msg || "Invalid login credentials.");
       }
+
+      const authData = await authResponse.json();
+      
+      if (!authData.user) {
+        throw new Error("Login succeeded but no user session was returned.");
+      }
+
+      // Manually set the session in the SDK so the rest of the app works
+      await supabase.auth.setSession({
+        access_token: authData.access_token,
+        refresh_token: authData.refresh_token
+      });
+      
+      const data = { user: authData.user, session: authData };
       
       // Step 3: Fetch user profile from Supabase table
       const { data: dbProfile, error: profileError } = await supabase
