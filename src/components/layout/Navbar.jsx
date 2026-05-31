@@ -29,7 +29,12 @@ export default function Navbar({ onMenuToggle }) {
             </Link>
             <div className="h-6 w-px bg-white/20 mx-1 md:mx-2 hidden sm:block"></div>
             <span className="font-semibold text-cc-cream hidden md:block">Hello, {user.name}</span>
-            <button onClick={() => { logout(); window.location.href = '/'; }} className="bg-cc-gold text-cc-navy px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold hover:bg-opacity-90 transition shadow-sm text-sm md:text-base">
+            <button onClick={async () => { 
+              localStorage.clear();
+              sessionStorage.clear();
+              logout(); 
+              window.location.href = '/'; 
+            }} className="bg-cc-gold text-cc-navy px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold hover:bg-opacity-90 transition shadow-sm text-sm md:text-base">
               Logout
             </button>
           </>
