@@ -1,9 +1,17 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { motion } from 'framer-motion';
 import { GraduationCap, Users, Building } from 'lucide-react';
+import useAuthStore from '../store/authStore';
 
 export default function Welcome() {
+  const { user } = useAuthStore();
+  
+  if (user) {
+    if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+    if (user.role === 'leader' || user.role === 'clubLeader') return <Navigate to="/leader/dashboard" replace />;
+    return <Navigate to="/student/dashboard" replace />;
+  }
   return (
     <div className="min-h-screen bg-cc-offwhite flex flex-col">
       <Navbar />

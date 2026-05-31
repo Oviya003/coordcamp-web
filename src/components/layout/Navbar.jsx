@@ -8,9 +8,11 @@ export default function Navbar({ onMenuToggle }) {
   return (
     <nav className="bg-cc-maroon text-cc-offwhite px-4 md:px-6 py-4 flex justify-between items-center shadow-md z-50 relative">
       <div className="flex items-center gap-3">
-        <button onClick={onMenuToggle} className="md:hidden text-white mr-2">
-          <Menu size={24} />
-        </button>
+        {onMenuToggle && (
+          <button onClick={onMenuToggle} className="md:hidden text-white mr-2">
+            <Menu size={24} />
+          </button>
+        )}
         <Link to="/" className="flex items-center gap-3">
           <img src="/logo.png" alt="CoordCamp Logo" className="h-8 md:h-10 object-contain drop-shadow-sm" />
           <span className="text-xl md:text-2xl font-playfair font-bold text-cc-gold tracking-wide hidden sm:block">CoordCamp</span>
