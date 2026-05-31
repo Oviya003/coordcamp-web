@@ -59,8 +59,13 @@ const useAuthStore = create((set) => ({
   },
   
   logout: async () => {
-    await supabase.auth.signOut();
+    // Forcefully clear everything immediately so users don't get trapped if SDK hangs
+    localStorage.clear();
+    sessionStorage.clear();
     set({ user: null, session: null, token: null });
+    
+    // Attempt graceful server logout in background without waiting
+    supabase.auth.signOut().catch(() => {});
   }
 }));
 
