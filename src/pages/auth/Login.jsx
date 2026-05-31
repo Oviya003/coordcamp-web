@@ -75,23 +75,37 @@ export default function Login() {
         throw new Error("Login succeeded but no user session was returned.");
       }
 
-      // Manually set the session in the SDK so the rest of the app works
-      await supabase.auth.setSession({
-        access_token: authData.access_token,
-        refresh_token: authData.refresh_token
+      // Step 3: Fetch user profile using NATIVE fetch to bypass SDK hang
+      const profileResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${authData.user.id}&select=id,email,role,full_name`, {
+        method: 'GET',
+        headers: {
+          'apikey': anonKey,
+          'Authorization': `Bearer ${authData.access_token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        }
       });
-      
-      const data = { user: authData.user, session: authData };
-      
-      // Step 3: Fetch user profile from Supabase table
-      const { data: dbProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, email, role, full_name')
-        .eq('id', data.user.id)
-        .maybeSingle();
 
-      if (profileError) throw profileError;
+      if (!profileResponse.ok) {
+        throw new Error("Failed to fetch user profile data.");
+      }
 
+      const profileDataArray = await profileResponse.json();
+      const dbProfile = profileDataArray.length > 0 ? profileDataArray[0] : null;
+
+      // Manually set the session in localStorage to bypass buggy SDK setSession
+      const sessionData = {
+        access_token: authData.access_token,
+        refresh_token: authData.refresh_token,
+        expires_in: authData.expires_in,
+        expires_at: Math.floor(Date.now() / 1000) + authData.expires_in,
+        token_type: authData.token_type,
+        user: authData.user
+      };
+      
+      // Project ref is zmchgoheciwkitiamihv
+      localStorage.setItem('sb-zmchgoheciwkitiamihv-auth-token', JSON.stringify(sessionData));
+      
       // Step 4: Determine actual role from database
       const finalRole = dbProfile?.role || 'student';
       
@@ -110,9 +124,9 @@ export default function Login() {
 
       // Update local store with the DB truth
       useAuthStore.setState({ 
-        user: { ...data.user, ...dbProfile, role: finalRole },
-        token: data.session?.access_token,
-        session: data.session
+        user: { ...authData.user, ...dbProfile, role: finalRole },
+        token: authData.access_token,
+        session: sessionData
       });
       
       toast.success('Successfully logged in!');
