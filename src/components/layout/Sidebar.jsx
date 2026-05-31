@@ -1,8 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, QrCode, MapPin, Users, Shield, PlusCircle, Database, BarChart2, Settings, Bot, CreditCard, FileText, CheckSquare, Bell } from 'lucide-react';
+import { Home, Calendar, QrCode, MapPin, Users, Shield, PlusCircle, Database, BarChart2, Settings, Bot, CreditCard, FileText, CheckSquare, Bell, X } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { user } = useAuthStore();
   const location = useLocation();
 
@@ -46,7 +46,7 @@ export default function Sidebar() {
         const isActive = location.pathname === link.path;
         return (
           <li key={link.name}>
-            <Link to={link.path} className={`flex items-center gap-3 font-semibold p-3 rounded-xl transition duration-200 ${
+            <Link onClick={onClose} to={link.path} className={`flex items-center gap-3 font-semibold p-3 rounded-xl transition duration-200 ${
               isActive ? 'bg-cc-maroon text-white shadow-md' : 'text-cc-navy hover:bg-cc-cream hover:text-cc-maroon'
             }`}>
               {link.icon} {link.name}
@@ -58,11 +58,23 @@ export default function Sidebar() {
   );
 
   return (
-    <aside className="w-64 bg-cc-offwhite p-6 border-r border-gray-200 flex flex-col h-[calc(100vh-80px)] overflow-y-auto">
-      <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-200">
-        <img src="/logo.png" alt="CoordCamp Logo" className="h-8 object-contain" />
-        <span className="text-lg font-playfair font-bold text-cc-maroon">CoordCamp</span>
-      </div>
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />
+      )}
+      
+      {/* Sidebar Content */}
+      <aside className={`w-64 bg-cc-offwhite p-6 border-r border-gray-200 flex flex-col h-[calc(100vh-60px)] md:h-[calc(100vh-80px)] overflow-y-auto fixed md:static top-[60px] md:top-[80px] left-0 z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        <div className="flex justify-between items-center mb-8 pb-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="CoordCamp Logo" className="h-8 object-contain" />
+            <span className="text-lg font-playfair font-bold text-cc-maroon">CoordCamp</span>
+          </div>
+          <button onClick={onClose} className="md:hidden text-gray-500 hover:text-cc-maroon">
+            <X size={24} />
+          </button>
+        </div>
       
       {user?.role === 'student' && (
         <div className="mb-8">
@@ -85,5 +97,6 @@ export default function Sidebar() {
         </div>
       )}
     </aside>
+    </>
   );
 }

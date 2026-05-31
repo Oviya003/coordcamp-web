@@ -9,6 +9,7 @@ import ChatWindow from '../chatbot/ChatWindow';
 export default function DashboardLayout() {
   const { token } = useAuthStore();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -25,14 +26,14 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-cc-offwhite">
-      <Navbar />
+      <Navbar onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
       {isOffline && (
         <div className="bg-red-500 text-white font-bold py-2 px-4 flex items-center justify-center gap-2">
           <WifiOff size={18} /> You are currently offline. Some features may be unavailable.
         </div>
       )}
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
+      <div className="flex flex-1 overflow-hidden relative">
+        <Sidebar isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
         <main className="flex-1 p-8 bg-cc-cream rounded-tl-3xl shadow-[inset_0_4px_6px_rgba(0,0,0,0.05)] overflow-y-auto h-[calc(100vh-80px)]">
           <Outlet />
         </main>
