@@ -1,0 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+Pro:wght@400;600;700&display=swap');
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+body {
+  @apply bg-cc-offwhite text-cc-navy font-sans;
+}
+h1, h2, h3, h4, h5, h6 {
+  @apply font-playfair;
+}
+button, a, input[type="submit"], input[type="button"] {
+  cursor: pointer;
+}
