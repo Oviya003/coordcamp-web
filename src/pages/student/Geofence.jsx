@@ -86,8 +86,7 @@ export default function Geofence() {
           const { error } = await supabase.from('attendance').insert({
             event_id: selectedEventId,
             student_id: user.id,
-            method: 'geofence',
-            status: 'present'
+            method: 'geofence'
           });
 
           if (error && error.code !== '23505') {
@@ -128,9 +127,9 @@ export default function Geofence() {
         setStatus('error');
         setMessage("You are not in the venue.");
         
-        // Update database to mark as left
+        // Remove attendance if they leave
         await supabase.from('attendance')
-          .update({ status: 'left' })
+          .delete()
           .eq('event_id', event.id)
           .eq('student_id', user.id);
           
