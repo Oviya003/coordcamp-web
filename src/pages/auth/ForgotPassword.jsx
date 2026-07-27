@@ -68,7 +68,7 @@ export default function ForgotPassword() {
         </div>
         <h2 className="text-4xl font-playfair font-bold text-cc-maroon mb-2 text-center">Reset Password</h2>
         <p className="text-gray-500 text-center mb-8 font-semibold">
-          {otpSent ? "Enter the 6-digit OTP sent to your email" : "We'll send you an OTP to reset your password"}
+          {otpSent ? "Enter the 8-digit OTP sent to your email" : "We'll send you an OTP to reset your password"}
         </p>
         
         {error && <div className="bg-red-50 text-red-500 p-3 rounded-xl mb-6 text-sm font-bold text-center">{error}</div>}
@@ -79,9 +79,9 @@ export default function ForgotPassword() {
               <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
               <input 
                 type="text" 
-                placeholder="6-digit OTP" 
+                placeholder="8-digit OTP" 
                 required 
-                maxLength={6}
+                maxLength={8}
                 className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-300 bg-cc-offwhite focus:border-cc-maroon outline-none font-semibold text-center tracking-widest text-lg" 
                 onChange={e => setOtp(e.target.value)} 
                 value={otp}
