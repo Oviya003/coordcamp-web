@@ -9,10 +9,6 @@ export default function AdminUsers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [updating, setUpdating] = useState(null);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   const fetchUsers = async () => {
     try {
       const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
@@ -24,6 +20,10 @@ export default function AdminUsers() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleRoleChange = async (userId, newRole) => {
     setUpdating(userId);

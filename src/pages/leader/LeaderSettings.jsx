@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Save, Image as ImageIcon, ShieldCheck, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';

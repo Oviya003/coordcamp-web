@@ -8,10 +8,6 @@ export default function AdminEvents() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
   const fetchEvents = async () => {
     try {
       const { data, error } = await supabase.from('events').select('*').order('date', { ascending: false });
@@ -23,6 +19,10 @@ export default function AdminEvents() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this event? This will also remove all associated attendance records.")) return;

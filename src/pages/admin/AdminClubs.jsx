@@ -8,10 +8,6 @@ export default function AdminClubs() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchClubs();
-  }, []);
-
   const fetchClubs = async () => {
     try {
       const { data, error } = await supabase.from('clubs').select('*, profiles(full_name)').order('created_at', { ascending: false });
@@ -23,6 +19,10 @@ export default function AdminClubs() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchClubs();
+  }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this club?")) return;
