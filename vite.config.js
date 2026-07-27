@@ -9,6 +9,11 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      // Disable PWA service worker while developing to avoid caching delays
+      devOptions: {
+        enabled: false,
+        /* When enabled:true you can test the PWA locally */
+      },
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
