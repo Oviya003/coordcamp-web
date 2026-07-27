@@ -135,14 +135,7 @@ export default function Credits() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-3xl p-6 border border-yellow-100 shadow-sm text-center">
-            <Gift size={48} className="text-orange-400 mx-auto mb-4" />
-            <h3 className="font-playfair font-bold text-lg text-orange-900 mb-2">Rewards Store</h3>
-            <p className="text-sm text-orange-800/70 font-semibold mb-4">Spend your hard-earned credits on campus merch!</p>
-            <button className="w-full bg-orange-500 text-white font-bold py-2.5 rounded-xl hover:bg-orange-600 transition shadow-sm">
-              Browse Rewards
-            </button>
-          </div>
+
         </div>
 
       </div>

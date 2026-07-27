@@ -117,12 +117,6 @@ export default function Dashboard() {
           <p className="text-cc-navy text-lg font-semibold">Your Campus Life at a Glance</p>
         </div>
         <div className="flex gap-2">
-          <button 
-            onClick={handlePromoteToLeader}
-            className="flex items-center gap-2 bg-white text-cc-navy px-4 py-2 rounded-xl font-bold border border-gray-200 hover:bg-gray-50 transition shadow-sm"
-          >
-            <Shield size={16} className="text-cc-gold" /> Become Leader
-          </button>
           <Link to="/student/profile" className="flex items-center justify-center w-10 h-10 bg-cc-navy text-white rounded-xl shadow-sm hover:bg-opacity-90 transition">
             <UserIcon size={18} />
           </Link>
