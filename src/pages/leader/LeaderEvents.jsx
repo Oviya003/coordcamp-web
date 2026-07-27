@@ -19,15 +19,36 @@ export default function LeaderEvents() {
       try {
         if (!user || !user.id) return;
         
-        const { data, error } = await supabase
+        // Step 1: Fetch events
+        const { data: eventsData, error: eventsError } = await supabase
           .from('events')
-          .select('*, attendance(id, method, profiles(full_name, email, student_id))')
+          .select('*')
           .eq('created_by', user.id)
           .order('date', { ascending: false });
 
-        if (error) throw error;
+        if (eventsError) throw eventsError;
         
-        if (isMounted) setEvents(data || []);
+        if (!eventsData || eventsData.length === 0) {
+          if (isMounted) setEvents([]);
+          return;
+        }
+
+        // Step 2: Fetch attendance separately to avoid any nested query issues
+        const eventIds = eventsData.map(e => e.id);
+        const { data: attendanceData, error: attendanceError } = await supabase
+          .from('attendance')
+          .select('id, event_id, method, profiles(full_name, email, student_id)')
+          .in('event_id', eventIds);
+
+        // Map attendance back to events even if attendance fetch fails
+        const finalEvents = eventsData.map(event => {
+          return {
+            ...event,
+            attendance: attendanceError ? [] : (attendanceData || []).filter(a => a.event_id === event.id)
+          };
+        });
+        
+        if (isMounted) setEvents(finalEvents);
       } catch (err) {
         console.error("Error fetching events:", err.message);
         if (isMounted) setEvents([]);
