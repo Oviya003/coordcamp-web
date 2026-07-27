@@ -40,6 +40,11 @@ export default function LeaderEvents() {
           .select('id, event_id, method, profiles(full_name, email, student_id)')
           .in('event_id', eventIds);
 
+        if (attendanceError) {
+          console.error("ATTENDANCE ERROR:", attendanceError);
+          toast.error("Database blocked attendance: " + attendanceError.message);
+        }
+
         // Map attendance back to events even if attendance fetch fails
         const finalEvents = eventsData.map(event => {
           return {
