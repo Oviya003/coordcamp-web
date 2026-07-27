@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../config/supabase';
 import useAuthStore from '../../store/authStore';
-import { motion } from 'framer-motion';
-import { Calendar, Trash2, Edit, PlusCircle, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, Trash2, Edit, PlusCircle, Loader2, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -10,6 +10,7 @@ export default function LeaderEvents() {
   const { user } = useAuthStore();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedEventId, setExpandedEventId] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -20,7 +21,7 @@ export default function LeaderEvents() {
         
         const { data, error } = await supabase
           .from('events')
-          .select('*')
+          .select('*, attendance(id, method, profiles(full_name, email, student_id))')
           .eq('created_by', user.id)
           .order('date', { ascending: false });
 
@@ -41,6 +42,7 @@ export default function LeaderEvents() {
   }, [user]);
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
       const { error } = await supabase.from('events').delete().eq('id', id);
       if (error) throw error;
@@ -49,6 +51,10 @@ export default function LeaderEvents() {
     } catch (err) {
       toast.error('Failed to delete event. Mock data cannot be deleted.');
     }
+  };
+
+  const toggleExpand = (id) => {
+    setExpandedEventId(expandedEventId === id ? null : id);
   };
 
   if (loading) {
@@ -77,25 +83,86 @@ export default function LeaderEvents() {
         ) : (
           <div className="divide-y divide-gray-100">
             {events.map(event => (
-              <div key={event.id} className="p-6 flex items-center justify-between hover:bg-gray-50 transition group">
-                <div className="flex items-center gap-4">
-                  <div className="bg-red-50 p-4 rounded-2xl text-cc-maroon">
-                    <Calendar size={24} />
+              <div key={event.id} className="group">
+                <div className="p-6 flex items-center justify-between hover:bg-gray-50 transition cursor-pointer" onClick={() => toggleExpand(event.id)}>
+                  <div className="flex items-center gap-4">
+                    <div className="bg-red-50 p-4 rounded-2xl text-cc-maroon">
+                      <Calendar size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg text-cc-navy flex items-center gap-2">
+                        {event.title}
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Users size={12} /> {event.attendance?.length || 0} Attended
+                        </span>
+                      </h3>
+                      <p className="text-sm text-gray-500">{new Date(event.date).toLocaleDateString()} at {event.location}</p>
+                      <p className="text-xs font-semibold text-cc-gold mt-1">Capacity: {event.capacity}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg text-cc-navy">{event.title}</h3>
-                    <p className="text-sm text-gray-500">{new Date(event.date).toLocaleDateString()} at {event.location}</p>
-                    <p className="text-xs font-semibold text-cc-gold mt-1">Capacity: {event.capacity}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
+                      <button className="p-2 text-gray-400 hover:text-cc-navy bg-white rounded-lg shadow-sm border border-gray-100 transition">
+                        <Edit size={18} />
+                      </button>
+                      <button onClick={() => handleDelete(event.id)} className="p-2 text-gray-400 hover:text-red-500 bg-white rounded-lg shadow-sm border border-gray-100 transition">
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                    <div className="text-gray-400 p-2">
+                      {expandedEventId === event.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition">
-                  <button className="p-2 text-gray-400 hover:text-cc-navy bg-white rounded-lg shadow-sm border border-gray-100 transition">
-                    <Edit size={18} />
-                  </button>
-                  <button onClick={() => handleDelete(event.id)} className="p-2 text-gray-400 hover:text-red-500 bg-white rounded-lg shadow-sm border border-gray-100 transition">
-                    <Trash2 size={18} />
-                  </button>
-                </div>
+                
+                <AnimatePresence>
+                  {expandedEventId === event.id && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden bg-gray-50 border-t border-gray-100"
+                    >
+                      <div className="p-6">
+                        <h4 className="font-bold text-cc-navy mb-4 flex items-center gap-2"><Users size={18} /> Attendance List</h4>
+                        {(!event.attendance || event.attendance.length === 0) ? (
+                          <p className="text-sm text-gray-500 italic bg-white p-4 rounded-xl border border-gray-200">No students have checked into this event yet.</p>
+                        ) : (
+                          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <table className="w-full text-left text-sm">
+                              <thead className="bg-gray-50 text-gray-500">
+                                <tr>
+                                  <th className="px-4 py-3 font-semibold">Student Name</th>
+                                  <th className="px-4 py-3 font-semibold">Student ID</th>
+                                  <th className="px-4 py-3 font-semibold">Email</th>
+                                  <th className="px-4 py-3 font-semibold">Check-in Method</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100">
+                                {event.attendance.map(record => (
+                                  <tr key={record.id} className="hover:bg-gray-50/50">
+                                    <td className="px-4 py-3 font-medium text-cc-navy">{record.profiles?.full_name || 'Unknown'}</td>
+                                    <td className="px-4 py-3 text-gray-600">{record.profiles?.student_id || 'N/A'}</td>
+                                    <td className="px-4 py-3 text-gray-500">{record.profiles?.email || 'N/A'}</td>
+                                    <td className="px-4 py-3">
+                                      <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                                        record.method === 'qr' ? 'bg-purple-100 text-purple-700' :
+                                        record.method === 'geofence' ? 'bg-green-100 text-green-700' :
+                                        'bg-gray-100 text-gray-700'
+                                      }`}>
+                                        {record.method ? record.method.toUpperCase() : 'MANUAL'}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ))}
           </div>
