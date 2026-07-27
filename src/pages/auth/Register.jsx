@@ -49,34 +49,45 @@ export default function Register() {
       setLoading(false);
       return;
     }
-    
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        data: {
-          full_name: formData.name,
-          student_id: formData.studentId,
-        }
-      }
-    });
+    let data = null;
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zmchgoheciwkitiamihv.supabase.co';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptY2hnb2hlY2l3a2l0aWFtaWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NDU5MzUsImV4cCI6MjA5NTUyMTkzNX0.Rt7gfIVturJnppXrgNbova7mGLxAqmadwlsYWYDuYfg';
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Network timeout: Supabase is taking too long to respond.")), 10000)
+      );
 
-    if (signUpError) {
-      setError("Registration Error: " + signUpError.message);
+      const signUpResponse = await Promise.race([
+        fetch(`${supabaseUrl}/auth/v1/signup`, {
+          method: 'POST',
+          headers: {
+            'apikey': anonKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            data: {
+              full_name: formData.name,
+              student_id: formData.studentId,
+              role: targetRole,
+            }
+          })
+        }),
+        timeoutPromise
+      ]);
+
+      if (!signUpResponse.ok) {
+        const errorData = await signUpResponse.json();
+        throw new Error(errorData.msg || errorData.error_description || 'Registration Failed');
+      }
+
+      data = await signUpResponse.json();
+    } catch (err) {
+      setError("Registration Error: " + err.message);
       setLoading(false);
       return;
-    }
-
-    if (data?.user) {
-      // Force an update to override the SQL trigger's default 'student' role
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ role: targetRole })
-        .eq('id', data.user.id);
-        
-      if (profileError) {
-        console.error("Error setting role on register:", profileError);
-      }
     }
 
     toast.success('Account created successfully!');

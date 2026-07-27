@@ -12,17 +12,35 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
 
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zmchgoheciwkitiamihv.supabase.co';
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptY2hnb2hlY2l3a2l0aWFtaWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NDU5MzUsImV4cCI6MjA5NTUyMTkzNX0.Rt7gfIVturJnppXrgNbova7mGLxAqmadwlsYWYDuYfg';
+
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Network timeout: Supabase is taking too long to respond.")), 10000)
+      );
 
-      if (resetError) throw resetError;
+      const response = await Promise.race([
+        fetch(`${supabaseUrl}/auth/v1/recover`, {
+          method: 'POST',
+          headers: {
+            'apikey': anonKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email })
+        }),
+        timeoutPromise
+      ]);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.msg || errorData.error_description || 'Failed to send OTP');
+      }
       
       setOtpSent(true);
       toast.success('OTP sent to your email!');
@@ -39,13 +57,40 @@ export default function ForgotPassword() {
     setError('');
 
     try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: 'recovery'
-      });
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Network timeout: Supabase is taking too long to respond.")), 10000)
+      );
 
-      if (verifyError) throw verifyError;
+      const response = await Promise.race([
+        fetch(`${supabaseUrl}/auth/v1/verify`, {
+          method: 'POST',
+          headers: {
+            'apikey': anonKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, token: otp, type: 'recovery' })
+        }),
+        timeoutPromise
+      ]);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.msg || errorData.error_description || 'Invalid OTP');
+      }
+
+      const authData = await response.json();
+      
+      if (authData.access_token) {
+        const sessionData = {
+          access_token: authData.access_token,
+          refresh_token: authData.refresh_token,
+          expires_in: authData.expires_in,
+          expires_at: Math.floor(Date.now() / 1000) + authData.expires_in,
+          token_type: authData.token_type,
+          user: authData.user
+        };
+        localStorage.setItem('sb-zmchgoheciwkitiamihv-auth-token', JSON.stringify(sessionData));
+      }
       
       toast.success('OTP verified! Please set your new password.');
       navigate('/reset-password');

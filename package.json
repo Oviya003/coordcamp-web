@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
     "@supabase/supabase-js": "^2.106.2",
     "@tailwindcss/postcss": "^4.3.0",
     "@yudiel/react-qr-scanner": "^2.6.0",
@@ -33,6 +35,8 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.4.2",
     "@eslint/js": "^10.0.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

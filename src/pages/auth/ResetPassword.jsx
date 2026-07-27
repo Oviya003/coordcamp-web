@@ -40,11 +40,37 @@ export default function ResetPassword() {
     }
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: password
-      });
+      // Bypass Supabase SDK bug by using native fetch with timeout
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zmchgoheciwkitiamihv.supabase.co';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptY2hnb2hlY2l3a2l0aWFtaWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NDU5MzUsImV4cCI6MjA5NTUyMTkzNX0.Rt7gfIVturJnppXrgNbova7mGLxAqmadwlsYWYDuYfg';
 
-      if (updateError) throw updateError;
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Auth session missing. Please restart the forgot password process.");
+      }
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Network timeout: Supabase is taking too long to respond.")), 10000)
+      );
+
+      const updateResponse = await Promise.race([
+        fetch(`${supabaseUrl}/auth/v1/user`, {
+          method: 'PUT',
+          headers: {
+            'apikey': anonKey,
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ password })
+        }),
+        timeoutPromise
+      ]);
+
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json();
+        throw new Error(errorData.msg || errorData.error_description || 'Failed to update password');
+      }
       
       toast.success('Password updated successfully!');
       navigate('/login');
