@@ -94,9 +94,21 @@ export default function LeaderEvents() {
           <h1 className="text-4xl font-playfair font-bold text-cc-maroon mb-2">My Events</h1>
           <p className="text-cc-navy text-lg">Manage and track events you have created.</p>
         </div>
-        <Link to="/leader/create-event" className="bg-cc-maroon hover:bg-opacity-90 transition text-white px-6 py-3 rounded-xl inline-flex items-center gap-2 font-bold shadow-lg">
-          <PlusCircle size={20} /> Create Event
-        </Link>
+        <div className="flex gap-4">
+          <button 
+            onClick={async () => {
+              const { data, error } = await supabase.from('attendance').select('*');
+              if (error) alert("ERROR: " + error.message);
+              else alert("ATTENDANCE ROWS FOUND: " + data.length + "\n\n" + JSON.stringify(data.slice(0,2)));
+            }}
+            className="bg-yellow-400 hover:bg-yellow-500 transition text-black px-6 py-3 rounded-xl inline-flex items-center gap-2 font-bold shadow-lg"
+          >
+            TEST DATABASE
+          </button>
+          <Link to="/leader/create-event" className="bg-cc-maroon hover:bg-opacity-90 transition text-white px-6 py-3 rounded-xl inline-flex items-center gap-2 font-bold shadow-lg">
+            <PlusCircle size={20} /> Create Event
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
