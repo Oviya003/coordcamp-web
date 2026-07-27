@@ -50,6 +50,7 @@ export default function Register() {
       return;
     }
     let data = null;
+    let authData = null;
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zmchgoheciwkitiamihv.supabase.co';
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptY2hnb2hlY2l3a2l0aWFtaWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NDU5MzUsImV4cCI6MjA5NTUyMTkzNX0.Rt7gfIVturJnppXrgNbova7mGLxAqmadwlsYWYDuYfg';
@@ -58,21 +59,15 @@ export default function Register() {
         setTimeout(() => reject(new Error("Network timeout: Supabase is taking too long to respond.")), 10000)
       );
 
+      // STEP 1: Sign up the user
       const signUpResponse = await Promise.race([
         fetch(`${supabaseUrl}/auth/v1/signup`, {
           method: 'POST',
-          headers: {
-            'apikey': anonKey,
-            'Content-Type': 'application/json',
-          },
+          headers: { 'apikey': anonKey, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email: formData.email,
             password: formData.password,
-            data: {
-              full_name: formData.name,
-              student_id: formData.studentId,
-              role: targetRole,
-            }
+            data: { full_name: formData.name, student_id: formData.studentId, role: targetRole }
           })
         }),
         timeoutPromise
@@ -82,8 +77,40 @@ export default function Register() {
         const errorData = await signUpResponse.json();
         throw new Error(errorData.msg || errorData.error_description || 'Registration Failed');
       }
-
       data = await signUpResponse.json();
+
+      // STEP 2: Log them in instantly to get an access token
+      const loginResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: { 'apikey': anonKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, password: formData.password })
+      });
+
+      if (!loginResponse.ok) throw new Error("Could not log in after registration");
+      authData = await loginResponse.json();
+
+      // STEP 3: Forcefully fix the broken Postgres trigger by patching their role using their new token
+      await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${authData.user.id}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': anonKey,
+          'Authorization': `Bearer ${authData.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ role: targetRole })
+      });
+
+      // STEP 4: Save session locally so it survives a refresh
+      const sessionData = {
+        access_token: authData.access_token,
+        refresh_token: authData.refresh_token,
+        expires_in: authData.expires_in,
+        expires_at: Math.floor(Date.now() / 1000) + authData.expires_in,
+        token_type: authData.token_type,
+        user: authData.user
+      };
+      localStorage.setItem('sb-zmchgoheciwkitiamihv-auth-token', JSON.stringify(sessionData));
+
     } catch (err) {
       setError("Registration Error: " + err.message);
       setLoading(false);
@@ -92,18 +119,18 @@ export default function Register() {
 
     toast.success('Account created successfully!');
     
-    // Bypass verification email locally so user isn't stuck
-    if (data?.user) {
-      useAuthStore.setState({ 
-        user: { ...data.user, role: targetRole },
-        token: data.session?.access_token || 'mock-token',
-        session: data.session || { access_token: 'mock-token' }
-      });
-      
-      if (targetRole === 'admin') navigate('/admin/dashboard');
-      else if (targetRole === 'clubLeader' || targetRole === 'leader') navigate('/leader/dashboard');
-      else navigate('/student/dashboard');
-    }
+    // Update global store and navigate!
+    useAuthStore.setState({ 
+      user: { ...authData.user, role: targetRole, full_name: formData.name },
+      token: authData.access_token,
+      session: authData,
+      isInitialized: true
+    });
+    
+    if (targetRole === 'admin') navigate('/admin/dashboard');
+    else if (targetRole === 'clubLeader' || targetRole === 'leader') navigate('/leader/dashboard');
+    else navigate('/student/dashboard');
+    
     setLoading(false);
   };
 
