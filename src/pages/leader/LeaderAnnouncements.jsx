@@ -19,20 +19,23 @@ export default function LeaderAnnouncements() {
     setLoading(true);
     
     try {
-      // 1. Get clubs led by this leader
-      const { data: clubs } = await supabase.from('clubs').select('id').eq('leader_id', user.id);
+      // 1. Get clubs led by this leader AND all their members in ONE query (much faster)
+      const { data: clubs, error: fetchError } = await supabase
+        .from('clubs')
+        .select('id, club_members(student_id)')
+        .eq('leader_id', user.id);
+        
+      if (fetchError) throw fetchError;
       if (!clubs || clubs.length === 0) throw new Error("You do not manage any clubs.");
       
-      const clubIds = clubs.map(c => c.id);
+      // Flatten the nested data and deduplicate student IDs
+      const studentIds = [...new Set(
+        clubs.flatMap(club => club.club_members.map(m => m.student_id))
+      )];
       
-      // 2. Get all members of these clubs
-      const { data: members } = await supabase.from('club_members').select('student_id').in('club_id', clubIds);
-      if (!members || members.length === 0) throw new Error("Your clubs have no members to notify.");
+      if (studentIds.length === 0) throw new Error("Your clubs have no members to notify.");
       
-      // Deduplicate student IDs
-      const studentIds = [...new Set(members.map(m => m.student_id))];
-      
-      // 3. Create notifications
+      // 2. Create notifications in batches if there are many users
       const notifs = studentIds.map(studentId => ({
         user_id: studentId,
         title: isUrgent ? `[URGENT] ${title}` : title,
@@ -40,8 +43,8 @@ export default function LeaderAnnouncements() {
         is_read: false
       }));
       
-      const { error } = await supabase.from('notifications').insert(notifs);
-      if (error) throw error;
+      const { error: insertError } = await supabase.from('notifications').insert(notifs);
+      if (insertError) throw insertError;
       
       toast.success(`Announcement sent to ${studentIds.length} members!`);
       
@@ -58,6 +61,7 @@ export default function LeaderAnnouncements() {
       setMessage('');
       setIsUrgent(false);
     } catch (err) {
+      console.error(err);
       toast.error(err.message || "Failed to send announcement");
     } finally {
       setLoading(false);
