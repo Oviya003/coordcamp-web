@@ -177,9 +177,9 @@ export default function LeaderDashboard() {
               <p className="text-xs font-bold text-cc-gold uppercase tracking-wider mb-1">Available Balance</p>
               <p className="text-3xl font-bold font-playfair">2,450 <span className="text-lg">pts</span></p>
             </div>
-            <button className="w-full mt-4 bg-cc-gold text-cc-navy font-bold py-3 rounded-xl hover:bg-white transition relative z-10">
+            <Link to="/leader/credits" className="w-full mt-4 bg-cc-gold text-cc-navy font-bold py-3 rounded-xl hover:bg-white transition relative z-10 block text-center">
               Allocate Credits
-            </button>
+            </Link>
           </div>
 
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
@@ -193,9 +193,9 @@ export default function LeaderDashboard() {
                   <p className="text-xs text-gray-500 mt-1">{ann.date}</p>
                 </div>
               ))}
-              <button className="w-full mt-4 border border-gray-200 text-gray-500 font-bold py-3 rounded-xl hover:bg-gray-50 transition text-sm">
+              <Link to="/leader/announcements" className="w-full mt-4 border border-gray-200 text-gray-500 font-bold py-3 rounded-xl hover:bg-gray-50 transition text-sm block text-center">
                 Post Announcement
-              </button>
+              </Link>
             </div>
           </div>
           
@@ -205,9 +205,9 @@ export default function LeaderDashboard() {
               <Bot size={24} className="text-cc-maroon" /> AI Assistant
             </h2>
             <p className="text-sm text-gray-500 mb-4 relative z-10">Get suggestions for events and automate member communications.</p>
-            <button className="text-cc-maroon font-bold text-sm hover:underline relative z-10 flex items-center gap-1">
+            <Link to="/leader/ai" className="text-cc-maroon font-bold text-sm hover:underline relative z-10 flex items-center gap-1">
               Ask Assistant &rarr;
-            </button>
+            </Link>
           </div>
 
         </div>
