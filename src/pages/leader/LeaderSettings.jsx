@@ -86,18 +86,13 @@ export default function LeaderSettings() {
         
         <div className="md:col-span-1 space-y-4">
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 text-center">
-            <div className="w-32 h-32 bg-cc-offwhite rounded-full mx-auto mb-4 border-4 border-white shadow-lg flex items-center justify-center text-gray-400 overflow-hidden relative group cursor-pointer">
-              <span className="text-4xl font-playfair font-bold text-cc-navy">CS</span>
-              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <ImageIcon size={24} className="text-white mb-1" />
-                <span className="text-xs text-white font-bold">Upload Logo</span>
-              </div>
+            <div className="w-32 h-32 bg-cc-offwhite rounded-full mx-auto mb-4 border-4 border-white shadow-lg flex items-center justify-center text-gray-400 overflow-hidden relative">
+              <span className="text-4xl font-playfair font-bold text-cc-navy">
+                {formData.name ? formData.name.substring(0, 2).toUpperCase() : 'CS'}
+              </span>
             </div>
             <h2 className="font-bold text-lg text-cc-navy">{formData.name}</h2>
             <p className="text-sm text-gray-500 mb-4">{formData.category}</p>
-            <button className="text-sm font-bold text-cc-maroon border border-cc-maroon rounded-lg px-4 py-2 w-full hover:bg-red-50 transition">
-              Change Logo
-            </button>
           </div>
 
           <div className="bg-cc-navy text-white p-6 rounded-3xl shadow-sm">
