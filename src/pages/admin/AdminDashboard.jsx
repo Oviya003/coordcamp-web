@@ -161,12 +161,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div onClick={() => navigate('/admin/settings')} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 group hover:border-cc-gold transition cursor-pointer">
-              <CreditCard size={32} className="text-cc-gold mb-4" />
-              <h3 className="text-lg font-bold text-cc-navy mb-2">Credit Management</h3>
-              <p className="text-sm text-gray-500">Allocate budget and participation credits across all clubs.</p>
-            </div>
+          <div className="grid grid-cols-1 gap-8">
             <div onClick={() => navigate('/admin/reports')} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 group hover:border-cc-maroon transition cursor-pointer">
               <FileText size={32} className="text-cc-maroon mb-4" />
               <h3 className="text-lg font-bold text-cc-navy mb-2">Reports</h3>
