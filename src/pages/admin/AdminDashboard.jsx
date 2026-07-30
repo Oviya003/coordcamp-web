@@ -4,9 +4,11 @@ import { motion } from 'framer-motion';
 import { Users, Calendar, Shield, AlertTriangle, FileText, Settings, Bot, CreditCard, BarChart2, Loader2 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { supabase } from '../../config/supabase';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -83,7 +85,7 @@ export default function AdminDashboard() {
           <h1 className="text-4xl font-playfair font-bold text-cc-maroon mb-2">University Admin</h1>
           <p className="text-cc-navy text-lg">Platform-wide statistics and management.</p>
         </div>
-        <button className="bg-cc-navy hover:bg-opacity-90 transition text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2">
+        <button onClick={() => navigate('/admin/settings')} className="bg-cc-navy hover:bg-opacity-90 transition text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2">
           <Settings size={20} /> System Settings
         </button>
       </div>
@@ -143,27 +145,29 @@ export default function AdminDashboard() {
                 <AreaChart data={analyticsData}>
                   <defs>
                     <linearGradient id="colorAdmin" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1A1A2E" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#1A1A2E" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#8B1A1A" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#8B1A1A" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="value" stroke="#1A1A2E" fillOpacity={1} fill="url(#colorAdmin)" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6B7280'}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#6B7280'}} dx={-10} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Area type="monotone" dataKey="value" stroke="#8B1A1A" strokeWidth={3} fillOpacity={1} fill="url(#colorAdmin)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 group hover:border-cc-gold transition cursor-pointer">
+            <div onClick={() => navigate('/admin/settings')} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 group hover:border-cc-gold transition cursor-pointer">
               <CreditCard size={32} className="text-cc-gold mb-4" />
               <h3 className="text-lg font-bold text-cc-navy mb-2">Credit Management</h3>
               <p className="text-sm text-gray-500">Allocate budget and participation credits across all clubs.</p>
             </div>
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 group hover:border-cc-maroon transition cursor-pointer">
+            <div onClick={() => navigate('/admin/reports')} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 group hover:border-cc-maroon transition cursor-pointer">
               <FileText size={32} className="text-cc-maroon mb-4" />
               <h3 className="text-lg font-bold text-cc-navy mb-2">Reports</h3>
               <p className="text-sm text-gray-500">Export compliance and engagement reports for administration.</p>
@@ -184,7 +188,7 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
-            <button className="w-full mt-6 bg-white border-2 border-cc-maroon text-cc-maroon font-bold py-3 rounded-xl hover:bg-red-50 transition text-sm">
+            <button onClick={() => navigate('/admin/reports')} className="w-full mt-6 bg-white border-2 border-cc-maroon text-cc-maroon font-bold py-3 rounded-xl hover:bg-red-50 transition text-sm">
               View All Logs
             </button>
           </div>
@@ -196,7 +200,7 @@ export default function AdminDashboard() {
             <p className="text-sm text-gray-300 mb-6 leading-relaxed">
               Use the AI assistant to query campus-wide data, summarize recent incidents, or draft official communications.
             </p>
-            <button className="w-full bg-cc-gold text-cc-navy font-bold py-3 rounded-xl hover:bg-white transition text-sm">
+            <button onClick={() => navigate('/admin/ai')} className="w-full bg-cc-gold text-cc-navy font-bold py-3 rounded-xl hover:bg-white transition text-sm">
               Open Assistant
             </button>
           </div>
