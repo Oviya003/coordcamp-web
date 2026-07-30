@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Mail, Lock, Loader2, User, Shield, Building, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Loader2, User, Shield, Building, Eye, EyeOff, Key } from 'lucide-react';
 import { supabase } from '../../config/supabase';
 import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
@@ -27,7 +27,7 @@ export default function Login() {
   
   const targetRole = dbRoleMap[roleParam] || 'student';
 
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ email: '', password: '', adminCode: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -40,6 +40,10 @@ export default function Login() {
     setError('');
 
     try {
+      if (targetRole === 'admin' && formData.adminCode !== '2026') {
+        throw new Error("Invalid 4-digit Admin security code.");
+      }
+
       // Step 1 & 2: Validate email/password and Authenticate
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error("Network timeout: Supabase is taking too long to respond. Please refresh the page or restart your dev server.")), 10000)
@@ -169,6 +173,14 @@ export default function Login() {
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
+          
+          {targetRole === 'admin' && (
+            <div className="relative">
+              <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <input type="password" placeholder="4-Digit Security Code" maxLength="4" required className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-300 bg-cc-offwhite focus:border-cc-maroon outline-none font-semibold" onChange={e => setFormData({...formData, adminCode: e.target.value})} />
+            </div>
+          )}
+
           <div className="flex justify-end">
             <Link to="/forgot-password" className="text-sm text-cc-navy hover:text-cc-maroon font-semibold transition">Forgot Password?</Link>
           </div>
@@ -176,9 +188,11 @@ export default function Login() {
             {loading ? <Loader2 className="animate-spin" /> : 'Sign In'}
           </button>
         </form>
-        <p className="text-center mt-6 text-gray-600 font-semibold">
-          New here? <Link to={`/register/${roleParam}`} className="text-cc-gold hover:underline font-bold">Create Account</Link>
-        </p>
+        {targetRole !== 'admin' && (
+          <p className="text-center mt-6 text-gray-600 font-semibold">
+            New here? <Link to={`/register/${roleParam}`} className="text-cc-gold hover:underline font-bold">Create Account</Link>
+          </p>
+        )}
       </div>
     </div>
   );
