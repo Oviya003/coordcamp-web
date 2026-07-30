@@ -1,6 +1,28 @@
 import { BarChart3, TrendingUp, Users, Calendar, Activity } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 export default function AdminAnalytics() {
+  const trendData = [
+    { day: 'Mon', attendance: 1200 },
+    { day: 'Tue', attendance: 1900 },
+    { day: 'Wed', attendance: 1500 },
+    { day: 'Thu', attendance: 2200 },
+    { day: 'Fri', attendance: 2800 },
+    { day: 'Sat', attendance: 3500 },
+    { day: 'Sun', attendance: 3100 },
+  ];
+
+  const handleExportCSV = () => {
+    const csvContent = "data:text/csv;charset=utf-8,Date,Active Students,Events Hosted,Check-ins\n2026-07-30,4289,142,12593";
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "Campus_Analytics_Report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex justify-between items-end">
@@ -8,7 +30,7 @@ export default function AdminAnalytics() {
           <h1 className="text-3xl font-playfair font-bold text-cc-navy mb-2">Campus Analytics</h1>
           <p className="text-gray-500">Platform-wide statistics and engagement metrics.</p>
         </div>
-        <button className="bg-cc-maroon text-white px-6 py-2 rounded-xl font-bold shadow-sm hover:bg-opacity-90 transition">
+        <button onClick={handleExportCSV} className="bg-cc-maroon text-white px-6 py-2 rounded-xl font-bold shadow-sm hover:bg-opacity-90 transition">
           Export Report (CSV)
         </button>
       </div>
@@ -70,8 +92,24 @@ export default function AdminAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 min-h-[400px] flex flex-col">
           <h3 className="font-bold text-xl text-cc-navy mb-6">Attendance Trends (Last 7 Days)</h3>
-          <div className="flex-1 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-gray-400 font-semibold bg-gray-50">
-            [Chart Area: Weekly Attendance Graph]
+          <div className="flex-1 min-h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trendData}>
+                <defs>
+                  <linearGradient id="colorTrends" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8B1A1A" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#8B1A1A" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: '#6B7280'}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#6B7280'}} dx={-10} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Area type="monotone" dataKey="attendance" stroke="#8B1A1A" strokeWidth={3} fillOpacity={1} fill="url(#colorTrends)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
         
