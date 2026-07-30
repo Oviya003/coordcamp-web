@@ -112,6 +112,7 @@ function App() {
             <Route path="credits" element={<LeaderCredits />} />
             <Route path="announcements" element={<LeaderAnnouncements />} />
             <Route path="ai" element={<ChatbotPage />} />
+            <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<LeaderSettings />} />
             <Route path="profile" element={<Profile />} />
           </Route>
@@ -129,6 +130,7 @@ function App() {
             <Route path="reports" element={<AdminReports />} />
             <Route path="analytics" element={<AdminAnalytics />} />
             <Route path="ai" element={<ChatbotPage />} />
+            <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="profile" element={<Profile />} />
           </Route>
