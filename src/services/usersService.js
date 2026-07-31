@@ -81,7 +81,7 @@ export const usersService = {
 
     // 4. Update leaderboard (upsert) using native fetch
     const lbHeaders = { ...headers, 'Prefer': 'resolution=merge-duplicates,return=representation' };
-    const lbRes = await fetch(`${supabaseUrl}/rest/v1/leaderboard`, {
+    const lbRes = await fetch(`${supabaseUrl}/rest/v1/leaderboard?on_conflict=student_id`, {
       method: 'POST',
       headers: lbHeaders,
       body: JSON.stringify({
