@@ -59,9 +59,20 @@ export default function LeaderCredits() {
       );
 
       toast.success(`Successfully allocated ${amount} credits to ${profiles[0].full_name}`);
+      
+      // Instantly add the new transaction to the UI state to ensure it shows up regardless of RLS SELECT policies
+      const newTx = {
+        id: Math.random().toString(),
+        reason: 'Manual Allocation',
+        amount: parseInt(amount),
+        created_at: new Date().toISOString(),
+        profiles: { full_name: profiles[0].full_name }
+      };
+      setTransactions(prev => [newTx, ...prev]);
+
       setAmount('');
       setRecipient('');
-      fetchTransactions(); // Refresh the history list
+      fetchTransactions(); // Attempt background refresh
     } catch (err) {
       toast.error(err.message || 'Failed to allocate credits');
     } finally {
