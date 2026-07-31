@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, ArrowUpRight, ArrowDownRight, Search, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -11,6 +11,27 @@ export default function LeaderCredits() {
   const [amount, setAmount] = useState('');
   const [recipient, setRecipient] = useState('');
   const [loading, setLoading] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+
+  const fetchTransactions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('credits')
+        .select('*, profiles(full_name)')
+        .eq('awarded_by', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      setTransactions(data || []);
+    } catch (err) {
+      console.error("Error fetching transactions:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) fetchTransactions();
+  }, [user]);
 
   const handleAllocate = async (e) => {
     e.preventDefault();
@@ -40,6 +61,7 @@ export default function LeaderCredits() {
       toast.success(`Successfully allocated ${amount} credits to ${profiles[0].full_name}`);
       setAmount('');
       setRecipient('');
+      fetchTransactions(); // Refresh the history list
     } catch (err) {
       toast.error(err.message || 'Failed to allocate credits');
     } finally {
@@ -120,27 +142,24 @@ export default function LeaderCredits() {
             </div>
             
             <div className="divide-y divide-gray-100">
-              {[
-                { id: 1, type: 'Event Reward', desc: 'Fall Kickoff Meeting', amount: 10, date: 'Today, 2:30 PM', student: 'Alice Smith' },
-                { id: 2, type: 'Manual Allocation', desc: 'Extra help with setup', amount: 25, date: 'Yesterday', student: 'Bob Johnson' },
-                { id: 3, type: 'Event Reward', desc: 'Leadership Workshop', amount: 15, date: 'Oct 15', student: 'Multiple (30)' },
-                { id: 4, type: 'Budget Refresh', desc: 'University Admin Allocation', amount: 1000, date: 'Oct 1', student: 'Club Treasury', isReceive: true },
-              ].map(tx => (
+              {transactions.length === 0 ? (
+                <div className="p-8 text-center text-gray-500 font-semibold italic">No transaction history found.</div>
+              ) : transactions.map(tx => (
                 <div key={tx.id} className="p-6 flex items-center justify-between hover:bg-gray-50 transition">
                   <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-xl ${tx.isReceive ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
-                      {tx.isReceive ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
+                    <div className="p-3 rounded-xl bg-red-50 text-red-500">
+                      <ArrowUpRight size={20} />
                     </div>
                     <div>
-                      <p className="font-bold text-cc-navy">{tx.desc}</p>
-                      <p className="text-sm text-gray-500">{tx.type} &bull; {tx.student}</p>
+                      <p className="font-bold text-cc-navy">{tx.reason}</p>
+                      <p className="text-sm text-gray-500">Manual Allocation &bull; {tx.profiles?.full_name || 'Unknown Student'}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-bold ${tx.isReceive ? 'text-green-600' : 'text-gray-800'}`}>
-                      {tx.isReceive ? '+' : '-'}{tx.amount}
+                    <p className="font-bold text-gray-800">
+                      -{tx.amount}
                     </p>
-                    <p className="text-xs font-semibold text-gray-400 mt-1">{tx.date}</p>
+                    <p className="text-xs font-semibold text-gray-400 mt-1">{new Date(tx.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
               ))}
