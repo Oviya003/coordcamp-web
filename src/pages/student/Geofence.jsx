@@ -52,6 +52,33 @@ export default function Geofence() {
 
   const selectedEvent = events.find(e => e.id === selectedEventId);
 
+  useEffect(() => {
+    if (!selectedEventId || !user?.id) return;
+    
+    // Reset status when switching events
+    setStatus('idle');
+    setMessage('Select an event and verify your location.');
+    setUserLocation(null);
+    
+    const checkExistingAttendance = async () => {
+      try {
+        const { data, error } = await supabase.from('attendance')
+          .select('id')
+          .eq('event_id', selectedEventId)
+          .eq('student_id', user.id)
+          .single();
+          
+        if (data) {
+          setStatus('success');
+          setMessage('You have already marked attendance for this event.');
+        }
+      } catch (err) {
+        // ignore PGRST116 (0 rows)
+      }
+    };
+    checkExistingAttendance();
+  }, [selectedEventId, user?.id]);
+
   const handleGeofenceCheckIn = () => {
     if (!selectedEvent?.latitude || !selectedEvent?.longitude) {
       toast.error("This event does not have a geofence configured.");
@@ -89,7 +116,14 @@ export default function Geofence() {
             method: 'geofence'
           });
 
-          if (error && error.code !== '23505') {
+          if (error) {
+            if (error.code === '23505') {
+              setStatus('success');
+              setMessage('You have already marked attendance for this event.');
+              toast.success('Attendance already marked');
+              startTracking(selectedEvent, userLat, userLng);
+              return;
+            }
             throw error;
           }
           
