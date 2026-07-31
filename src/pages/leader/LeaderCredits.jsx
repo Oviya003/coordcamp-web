@@ -17,7 +17,7 @@ export default function LeaderCredits() {
     try {
       const { data, error } = await supabase
         .from('credits')
-        .select('*, profiles(full_name)')
+        .select('*, profiles!student_id(full_name)')
         .eq('awarded_by', user.id)
         .order('created_at', { ascending: false })
         .limit(10);
