@@ -31,7 +31,7 @@ export default function Dashboard() {
         const { data: upcomingEvents, error: err3 } = await supabase
           .from('events')
           .select('*')
-          .gte('date', new Date().toISOString())
+          .gte('date', new Date().toISOString().split('T')[0])
           .order('date', { ascending: true })
           .limit(3);
           

@@ -14,7 +14,7 @@ export default function Events() {
         const { data, error } = await supabase
           .from('events')
           .select('*')
-          .gte('date', new Date().toISOString())
+          .gte('date', new Date().toISOString().split('T')[0])
           .order('date', { ascending: true });
         
         if (error) throw error;

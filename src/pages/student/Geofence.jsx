@@ -41,7 +41,7 @@ export default function Geofence() {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      const { data } = await supabase.from('events').select('*').gte('date', new Date().toISOString()).order('date');
+      const { data } = await supabase.from('events').select('*').gte('date', new Date().toISOString().split('T')[0]).order('date');
       if (data) {
         setEvents(data);
         if (data.length > 0) setSelectedEventId(data[0].id);
